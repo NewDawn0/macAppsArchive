@@ -1,30 +1,28 @@
 {
-  description = "Useful mac apps";
+  description = "Useful mac apps archived";
 
-  inputs = { nixpkgs.url = "github:nixos/nixpkgs"; };
+  inputs.utils.url = "github:NewDawn0/nixUtils";
 
-  outputs = { self, nixpkgs, }:
-    let eachSystem = nixpkgs.lib.genAttrs [ "x86_64-darwin" "aarch64-darwin" ];
-    in {
-      overlays.default = (final: prev: {
-        mac-apps-archive = self.packages.${prev.system}.default;
-      });
-      packages = eachSystem (system:
-        let pkgs = nixpkgs.legacyPackages.${system};
-        in {
-          default = pkgs.stdenv.mkDerivation {
-            name = "Mac util apps";
-            src = ./.;
-            installPhase = ''
-              mkdir -p $out/Applications
-              mv apps/* $out/Applications/
-            '';
-            meta = with pkgs.lib; {
-              description = "Useful mac apps";
-              homepage = "https://github.com/NewDawn0/mac-apps-archive";
-              platforms = platforms.darwin;
-            };
-          };
-        });
+  outputs = { self, utils, ... }: {
+    overlays.default = final: prev: {
+      mac-apps = self.packages.${prev.system}.default;
     };
+    packages =
+      utils.lib.eachSystem { systems = [ "x86_64-darwin" "aarch64-darwin" ]; }
+      (pkgs: {
+        default = pkgs.stdenv.mkDerivation {
+          name = "mac-apps-archive";
+          src = ./.;
+          installPhase = ''
+            mkdir -p $out/Applications
+            mv apps/* $out/Applications/
+          '';
+          meta = with pkgs.lib; {
+            description = "Useful mac apps archived";
+            homepage = "https://github.com/NewDawn0/macAppsArchive";
+            platforms = platforms.darwin;
+          };
+        };
+      });
+  };
 }
